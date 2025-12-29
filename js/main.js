@@ -39,11 +39,16 @@ async function init() {
     gameEngine = new GameEngine();
     setupGameCallbacks();
 
-    // 4. 캔버스 설정
+    // 4. 캔버스 설정 (게임 영역 내 웹캠용)
+    const gameCanvas = document.getElementById("game-canvas");
+    gameCanvas.width = 150;
+    gameCanvas.height = 150;
+    ctx = gameCanvas.getContext("2d");
+
+    // 하단 디버그용 캔버스
     const canvas = document.getElementById("canvas");
     canvas.width = 200;
     canvas.height = 200;
-    ctx = canvas.getContext("2d");
 
     // 5. Label Container 설정
     labelContainer = document.getElementById("label-container");
@@ -206,9 +211,14 @@ function handlePrediction(predictions, pose) {
     labelContainer.childNodes[i].innerHTML = classPrediction;
   }
 
-  // 3. 최고 확률 예측 표시
+  // 3. 최고 확률 예측 표시 (게임 영역과 하단 모두)
   const maxPredictionDiv = document.getElementById("max-prediction");
-  maxPredictionDiv.innerHTML = stabilized.className || "감지 중...";
+  const currentPoseDiv = document.getElementById("current-pose");
+  const poseText = stabilized.className || "감지 중...";
+  maxPredictionDiv.innerHTML = poseText;
+  if (currentPoseDiv) {
+    currentPoseDiv.innerHTML = poseText;
+  }
 
   // 4. GameEngine에 포즈 전달 (게임 모드일 경우)
   if (gameEngine && gameEngine.isGameActive && stabilized.className) {

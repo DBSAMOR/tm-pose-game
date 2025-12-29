@@ -15,19 +15,19 @@ class GameEngine {
     this.combo = 0;
     this.isGameActive = false;
     this.fruitsCaught = 0;
-    
+
     // 타이머
     this.gameStartTime = 0;
     this.levelUpTimer = null;
     this.itemSpawnTimer = null;
-    
+
     // 바구니 위치 (LEFT, CENTER, RIGHT)
     this.basketPosition = "CENTER";
-    
+
     // 아이템 배열
     this.items = [];
     this.itemIdCounter = 0;
-    
+
     // 아이템 정의
     this.itemTypes = {
       apple: { emoji: "🍎", score: 100, isFruit: true },
@@ -36,7 +36,7 @@ class GameEngine {
       cherry: { emoji: "🍒", score: 250, isFruit: true },
       bomb: { emoji: "💣", score: 0, isFruit: false }
     };
-    
+
     // 레벨별 설정
     this.levelConfig = {
       1: { fallDuration: 4000, bombProbability: 0.05 },
@@ -45,14 +45,14 @@ class GameEngine {
       4: { fallDuration: 2500, bombProbability: 0.10 },
       5: { fallDuration: 2000, bombProbability: 0.20 }
     };
-    
+
     // 콜백
     this.onScoreChange = null;
     this.onItemCreate = null;
     this.onItemRemove = null;
     this.onBasketMove = null;
     this.onGameEnd = null;
-    
+
     // 애니메이션
     this.animationId = null;
   }
@@ -71,19 +71,19 @@ class GameEngine {
     this.items = [];
     this.itemIdCounter = 0;
     this.gameStartTime = Date.now();
-    
+
     // UI 업데이트
     this.notifyScoreChange();
-    
+
     // 레벨업 타이머 시작 (20초마다)
     this.startLevelUpTimer();
-    
+
     // 아이템 생성 시작
     this.startItemSpawning();
-    
+
     // 게임 루프 시작
     this.gameLoop();
-    
+
     console.log("게임 시작!");
   }
 
@@ -92,24 +92,24 @@ class GameEngine {
    */
   stop() {
     this.isGameActive = false;
-    
+
     // 타이머 정리
     if (this.levelUpTimer) {
       clearInterval(this.levelUpTimer);
       this.levelUpTimer = null;
     }
-    
+
     if (this.itemSpawnTimer) {
       clearTimeout(this.itemSpawnTimer);
       this.itemSpawnTimer = null;
     }
-    
+
     // 애니메이션 정리
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
-    
+
     // 모든 아이템 제거
     this.items.forEach(item => {
       if (this.onItemRemove) {
@@ -117,7 +117,7 @@ class GameEngine {
       }
     });
     this.items = [];
-    
+
     console.log("게임 중지");
   }
 
@@ -140,14 +140,14 @@ class GameEngine {
   startItemSpawning() {
     const spawnItem = () => {
       if (!this.isGameActive) return;
-      
+
       this.createItem();
-      
+
       // 1.5~2.5초 랜덤 간격으로 다음 아이템 생성
       const delay = 1500 + Math.random() * 1000;
       this.itemSpawnTimer = setTimeout(spawnItem, delay);
     };
-    
+
     spawnItem();
   }
 
@@ -162,9 +162,9 @@ class GameEngine {
       y: 0, // 시작 위치 (상단)
       createdAt: Date.now()
     };
-    
+
     this.items.push(item);
-    
+
     // UI에 아이템 생성 알림
     if (this.onItemCreate) {
       const config = this.levelConfig[Math.min(this.level, 5)];
@@ -178,7 +178,7 @@ class GameEngine {
   selectItemType() {
     const rand = Math.random();
     const level = Math.min(this.level, 5);
-    
+
     // 레벨별 확률 설정
     let probabilities;
     if (level <= 2) {
@@ -206,7 +206,7 @@ class GameEngine {
         bomb: 0.20
       };
     }
-    
+
     // 누적 확률로 선택
     let cumulative = 0;
     for (const [type, prob] of Object.entries(probabilities)) {
@@ -215,7 +215,7 @@ class GameEngine {
         return type;
       }
     }
-    
+
     return "apple"; // 기본값
   }
 
@@ -232,9 +232,9 @@ class GameEngine {
    */
   gameLoop() {
     if (!this.isGameActive) return;
-    
+
     this.updateItems();
-    
+
     this.animationId = requestAnimationFrame(() => this.gameLoop());
   }
 
@@ -245,11 +245,11 @@ class GameEngine {
     const now = Date.now();
     const config = this.levelConfig[Math.min(this.level, 5)];
     const itemsToRemove = [];
-    
+
     this.items.forEach(item => {
       const elapsed = now - item.createdAt;
       const progress = elapsed / config.fallDuration;
-      
+
       // 아이템이 바닥에 도달했는지 확인
       if (progress >= 1.0) {
         // 충돌 검사
@@ -261,14 +261,14 @@ class GameEngine {
         itemsToRemove.push(item.id);
       }
     });
-    
+
     // 제거할 아이템 처리
     itemsToRemove.forEach(id => {
       const index = this.items.findIndex(item => item.id === id);
       if (index !== -1) {
         this.items.splice(index, 1);
       }
-      
+
       if (this.onItemRemove) {
         this.onItemRemove(id);
       }
@@ -287,13 +287,13 @@ class GameEngine {
    */
   handleItemCatch(item) {
     const itemData = this.itemTypes[item.type];
-    
+
     if (itemData.isFruit) {
       // 과일 캐치
       this.score += itemData.score;
       this.combo++;
       this.fruitsCaught++;
-      
+
       // 콤보 보너스
       if (this.combo === 5) {
         this.score += 50;
@@ -302,13 +302,33 @@ class GameEngine {
         this.score += 100;
         console.log("10콤보 달성! +100점 보너스");
       }
-      
+
       this.notifyScoreChange();
       console.log(`${itemData.emoji} 캐치! +${itemData.score}점 (콤보: ${this.combo})`);
+
+      // 즉시 아이템 제거 (시각적 피드백)
+      this.removeItemImmediately(item.id);
     } else {
       // 폭탄 캐치 - 게임 오버
       console.log("💣 폭탄 캐치! 게임 오버");
+      this.removeItemImmediately(item.id);
       this.endGame("폭탄을 받았습니다!");
+    }
+  }
+
+  /**
+   * 아이템 즉시 제거
+   */
+  removeItemImmediately(itemId) {
+    // 배열에서 제거
+    const index = this.items.findIndex(item => item.id === itemId);
+    if (index !== -1) {
+      this.items.splice(index, 1);
+    }
+
+    // DOM에서 제거
+    if (this.onItemRemove) {
+      this.onItemRemove(itemId);
     }
   }
 
@@ -317,15 +337,15 @@ class GameEngine {
    */
   handleItemMiss(item) {
     const itemData = this.itemTypes[item.type];
-    
+
     if (itemData.isFruit) {
       // 과일 놓침
       this.missCount++;
       this.combo = 0; // 콤보 리셋
       this.notifyScoreChange();
-      
+
       console.log(`${itemData.emoji} 놓침! (${this.missCount}/${this.maxMisses})`);
-      
+
       // 3번 놓치면 게임 오버
       if (this.missCount >= this.maxMisses) {
         console.log("과일을 3번 놓쳤습니다! 게임 오버");
@@ -342,24 +362,24 @@ class GameEngine {
    */
   onPoseDetected(pose) {
     if (!this.isGameActive) return;
-    
+
     // 포즈를 구역으로 매핑
     const poseToZone = {
       "좌": "LEFT",
       "중앙": "CENTER",
       "우": "RIGHT"
     };
-    
+
     const newPosition = poseToZone[pose];
-    
+
     if (newPosition && newPosition !== this.basketPosition) {
       this.basketPosition = newPosition;
-      
+
       // UI에 바구니 이동 알림
       if (this.onBasketMove) {
         this.onBasketMove(this.basketPosition);
       }
-      
+
       console.log(`바구니 이동: ${this.basketPosition}`);
     }
   }
@@ -384,24 +404,24 @@ class GameEngine {
    */
   endGame(reason) {
     this.isGameActive = false;
-    
+
     // 타이머 정리
     if (this.levelUpTimer) {
       clearInterval(this.levelUpTimer);
       this.levelUpTimer = null;
     }
-    
+
     if (this.itemSpawnTimer) {
       clearTimeout(this.itemSpawnTimer);
       this.itemSpawnTimer = null;
     }
-    
+
     // 애니메이션 정리
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
-    
+
     // 게임 오버 콜백
     if (this.onGameEnd) {
       this.onGameEnd({
