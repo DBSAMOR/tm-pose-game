@@ -1,38 +1,57 @@
 /* 페이지 전체 스타일과 게임 UI 디자인 */
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 100vh;
-  margin: 0;
   padding: 20px;
   gap: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
 }
 
 h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 36px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* 버튼 스타일 */
 .button-container {
   display: flex;
   gap: 10px;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  color: #667eea;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-button:hover {
-  background-color: #f0f0f0;
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 button:disabled {
@@ -40,15 +59,221 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* 게임 정보 바 */
+#game-info {
+  display: flex;
+  gap: 20px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.info-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 18px;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #667eea;
+}
+
+#score-display {
+  color: #f59e0b;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+#level-display {
+  color: #10b981;
+  font-weight: bold;
+}
+
+#miss-display {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+#combo-display {
+  color: #8b5cf6;
+  font-weight: bold;
+}
+
+/* 게임 영역 */
+#game-area {
+  position: relative;
+  width: 600px;
+  height: 500px;
+  background: linear-gradient(to bottom, #e0f2fe 0%, #bae6fd 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+/* 아이템 컨테이너 */
+#items-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.item {
+  position: absolute;
+  font-size: 48px;
+  transition: top 0.05s linear;
+  user-select: none;
+}
+
+/* 구역 표시 */
+#zones {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  height: 60px;
+}
+
+.zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.3);
+  border-right: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.zone:last-child {
+  border-right: none;
+}
+
+.zone[data-zone="LEFT"] {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.zone[data-zone="CENTER"] {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.zone[data-zone="RIGHT"] {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* 바구니 */
+#basket {
+  position: absolute;
+  bottom: 20px;
+  font-size: 64px;
+  transition: left 0.3s ease;
+  user-select: none;
+}
+
+#basket.basket-left {
+  left: 100px;
+  transform: translateX(-50%);
+}
+
+#basket.basket-center {
+  left: 300px;
+  transform: translateX(-50%);
+}
+
+#basket.basket-right {
+  left: 500px;
+  transform: translateX(-50%);
+}
+
+/* 게임 오버 모달 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+}
+
+.modal-content h2 {
+  font-size: 32px;
+  color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.modal-content p {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #666;
+}
+
+.game-over-stats {
+  margin: 24px 0;
+  padding: 20px;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.game-over-stats p {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin: 8px 0;
+}
+
+.game-over-stats span {
+  color: #667eea;
+}
+
+.modal-content button {
+  margin-top: 16px;
+  padding: 14px 32px;
+  font-size: 18px;
+}
+
+/* 웹캠 미리보기 */
+#webcam-preview {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .canvas-container {
   position: relative;
   display: inline-block;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 #canvas {
-  border: 1px solid #ccc;
-  border-radius: 4px;
   display: block;
+  width: 200px;
+  height: 200px;
 }
 
 #max-prediction {
@@ -58,9 +283,9 @@ button:disabled {
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   pointer-events: none;
 }
@@ -68,13 +293,40 @@ button:disabled {
 #label-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 200px;
 }
 
 #label-container div {
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 6px;
   text-align: center;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  #game-area {
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  #basket.basket-left {
+    left: 16.67%;
+  }
+  
+  #basket.basket-center {
+    left: 50%;
+  }
+  
+  #basket.basket-right {
+    left: 83.33%;
+  }
+  
+  #webcam-preview {
+    flex-direction: column;
+    align-items: center;
+  }
 }

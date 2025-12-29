@@ -2,20 +2,75 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>Teachable Machine Pose Model</title>
+    <title>🍎 Fruit Catch - 과일 캐치 게임</title>
     <link rel="stylesheet" href="./css/style.css" />
   </head>
   <body>
-    <h1>Teachable Machine Pose Model</h1>
+    <h1>🍎 Fruit Catch</h1>
+    
     <div class="button-container">
-      <button type="button" id="startBtn" onclick="init()">Start</button>
-      <button type="button" id="stopBtn" onclick="stop()" disabled>Stop</button>
+      <button type="button" id="startBtn" onclick="init()">게임 시작</button>
+      <button type="button" id="stopBtn" onclick="stop()" disabled>중지</button>
     </div>
-    <div class="canvas-container">
-      <canvas id="canvas"></canvas>
-      <div id="max-prediction"></div>
+
+    <!-- 게임 정보 바 -->
+    <div id="game-info">
+      <div class="info-item">
+        <span class="info-label">점수:</span>
+        <span id="score-display">0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">레벨:</span>
+        <span id="level-display">1</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">미스:</span>
+        <span id="miss-display">0/3</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">콤보:</span>
+        <span id="combo-display">0</span>
+      </div>
     </div>
-    <div id="label-container"></div>
+
+    <!-- 게임 영역 -->
+    <div id="game-area">
+      <!-- 떨어지는 아이템들 -->
+      <div id="items-container"></div>
+      
+      <!-- 3개 구역 표시 -->
+      <div id="zones">
+        <div class="zone" data-zone="LEFT">왼쪽</div>
+        <div class="zone" data-zone="CENTER">중앙</div>
+        <div class="zone" data-zone="RIGHT">오른쪽</div>
+      </div>
+      
+      <!-- 바구니 -->
+      <div id="basket" class="basket-center">🧺</div>
+    </div>
+
+    <!-- 게임 오버 모달 -->
+    <div id="game-over-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>게임 오버!</h2>
+        <p id="game-over-reason"></p>
+        <div class="game-over-stats">
+          <p>최종 점수: <span id="final-score">0</span></p>
+          <p>최고 레벨: <span id="final-level">1</span></p>
+          <p>받은 과일: <span id="final-fruits">0</span>개</p>
+        </div>
+        <button onclick="restartGame()">다시하기</button>
+      </div>
+    </div>
+
+    <!-- 웹캠 미리보기 -->
+    <div id="webcam-preview">
+      <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div id="max-prediction">대기 중...</div>
+      </div>
+      <div id="label-container"></div>
+    </div>
 
     <!-- Teachable Machine 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>

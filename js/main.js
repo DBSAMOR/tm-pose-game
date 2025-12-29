@@ -22,8 +22,8 @@ async function init() {
   startBtn.disabled = true;
 
   try {
-    // 1. PoseEngine 초기화
-    poseEngine = new PoseEngine("./my_model/");
+    // 1. PoseEngine 초기화 (모델 경로 수정!)
+    poseEngine = new PoseEngine("./my-model/");
     const { maxPredictions, webcam } = await poseEngine.init({
       size: 200,
       flip: true
@@ -35,8 +35,9 @@ async function init() {
       smoothingFrames: 3
     });
 
-    // 3. GameEngine 초기화 (선택적)
+    // 3. GameEngine 초기화
     gameEngine = new GameEngine();
+    setupGameCallbacks();
 
     // 4. 캔버스 설정
     const canvas = document.getElementById("canvas");
@@ -58,12 +59,90 @@ async function init() {
     // 7. PoseEngine 시작
     poseEngine.start();
 
+    // 8. 게임 자동 시작
+    gameEngine.start();
+
     stopBtn.disabled = false;
+    console.log("초기화 완료! 게임 시작!");
   } catch (error) {
     console.error("초기화 중 오류 발생:", error);
     alert("초기화에 실패했습니다. 콘솔을 확인하세요.");
     startBtn.disabled = false;
   }
+}
+
+/**
+ * 게임 엔진 콜백 설정
+ */
+function setupGameCallbacks() {
+  // 점수 변경 콜백
+  gameEngine.setScoreChangeCallback((data) => {
+    document.getElementById("score-display").textContent = data.score;
+    document.getElementById("level-display").textContent = data.level;
+    document.getElementById("miss-display").textContent = `${data.missCount}/${data.maxMisses}`;
+    document.getElementById("combo-display").textContent = data.combo;
+  });
+
+  // 아이템 생성 콜백
+  gameEngine.setItemCreateCallback((item, fallDuration) => {
+    const itemsContainer = document.getElementById("items-container");
+    const itemElement = document.createElement("div");
+    itemElement.className = "item";
+    itemElement.id = `item-${item.id}`;
+    itemElement.textContent = gameEngine.itemTypes[item.type].emoji;
+
+    // 초기 위치 설정
+    const zonePositions = {
+      "LEFT": "16.67%",
+      "CENTER": "50%",
+      "RIGHT": "83.33%"
+    };
+
+    itemElement.style.left = zonePositions[item.zone];
+    itemElement.style.transform = "translateX(-50%)";
+    itemElement.style.top = "0px";
+
+    itemsContainer.appendChild(itemElement);
+
+    // 낙하 애니메이션
+    setTimeout(() => {
+      itemElement.style.transition = `top ${fallDuration}ms linear`;
+      itemElement.style.top = "440px"; // 바구니 위치까지
+    }, 10);
+  });
+
+  // 아이템 제거 콜백
+  gameEngine.setItemRemoveCallback((itemId) => {
+    const itemElement = document.getElementById(`item-${itemId}`);
+    if (itemElement) {
+      itemElement.remove();
+    }
+  });
+
+  // 바구니 이동 콜백
+  gameEngine.setBasketMoveCallback((position) => {
+    const basket = document.getElementById("basket");
+    basket.className = ""; // 기존 클래스 제거
+
+    if (position === "LEFT") {
+      basket.classList.add("basket-left");
+    } else if (position === "CENTER") {
+      basket.classList.add("basket-center");
+    } else if (position === "RIGHT") {
+      basket.classList.add("basket-right");
+    }
+  });
+
+  // 게임 종료 콜백
+  gameEngine.setGameEndCallback((data) => {
+    document.getElementById("game-over-reason").textContent = data.reason;
+    document.getElementById("final-score").textContent = data.score;
+    document.getElementById("final-level").textContent = data.level;
+    document.getElementById("final-fruits").textContent = data.fruitsCaught;
+
+    const modal = document.getElementById("game-over-modal");
+    modal.classList.remove("hidden");
+  });
 }
 
 /**
@@ -87,6 +166,28 @@ function stop() {
 
   startBtn.disabled = false;
   stopBtn.disabled = true;
+}
+
+/**
+ * 게임 재시작
+ */
+function restartGame() {
+  // 게임 오버 모달 숨기기
+  const modal = document.getElementById("game-over-modal");
+  modal.classList.add("hidden");
+
+  // 아이템 컨테이너 초기화
+  const itemsContainer = document.getElementById("items-container");
+  itemsContainer.innerHTML = "";
+
+  // 바구니 중앙으로 이동
+  const basket = document.getElementById("basket");
+  basket.className = "basket-center";
+
+  // 게임 재시작
+  if (gameEngine) {
+    gameEngine.start();
+  }
 }
 
 /**
@@ -130,29 +231,4 @@ function drawPose(pose) {
       tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
     }
   }
-}
-
-// 게임 모드 시작 함수 (선택적 - 향후 확장용)
-function startGameMode(config) {
-  if (!gameEngine) {
-    console.warn("GameEngine이 초기화되지 않았습니다.");
-    return;
-  }
-
-  gameEngine.setCommandChangeCallback((command) => {
-    console.log("새로운 명령:", command);
-    // UI 업데이트 로직 추가 가능
-  });
-
-  gameEngine.setScoreChangeCallback((score, level) => {
-    console.log(`점수: ${score}, 레벨: ${level}`);
-    // UI 업데이트 로직 추가 가능
-  });
-
-  gameEngine.setGameEndCallback((finalScore, finalLevel) => {
-    console.log(`게임 종료! 최종 점수: ${finalScore}, 최종 레벨: ${finalLevel}`);
-    alert(`게임 종료!\n최종 점수: ${finalScore}\n최종 레벨: ${finalLevel}`);
-  });
-
-  gameEngine.start(config);
 }
